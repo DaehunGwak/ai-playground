@@ -168,3 +168,9 @@ ollama pull gemma3n:e4b
 
 chatgpt 는 직접 librosa 코드를 짜서 분석해버리네...
 ![chatgpt](images/chatgpt.png)
+
+## 결론
+
+gemman3n 은 오디오 텍스트 추출, 번역에 특화된 온디바이스 모델이지 음악 모델과는 맞지 않음
+
+- ref: https://ai.google.dev/gemma/docs/capabilities/audio
