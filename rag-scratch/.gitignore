@@ -56,3 +56,6 @@ htmlcov/
 # UV 관련 캐시
 .uv_cache/
 
+
+# chroma db
+chroma_db/

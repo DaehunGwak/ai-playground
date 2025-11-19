@@ -4,9 +4,17 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
+    "beautifulsoup4>=4.14.2",
     "jupyterlab>=4.4.10",
+    "langchain>=1.0.7",
     "langchain-anthropic>=1.0.2",
+    "langchain-chroma>=1.0.0",
+    "langchain-community>=0.4.1",
     "langchain-ollama>=1.0.0",
+    "langchain-openai>=1.0.3",
+    "langchain-text-splitters>=1.0.0",
+    "langchainhub>=0.1.21",
+    "langsmith>=0.4.43",
     "matplotlib>=3.10.7",
     "pandas>=2.3.3",
     "python-dotenv>=1.2.1",
