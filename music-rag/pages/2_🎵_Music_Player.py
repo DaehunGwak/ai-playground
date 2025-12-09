@@ -37,6 +37,31 @@ def load_all_tracks():
 
     return all_tracks
 
+# 유사한 트랙 검색 (embedding 기반)
+@st.cache_data(ttl=300)
+def get_similar_tracks(track_embedding: list, exclude_track_id: int, match_count: int = 4):
+    """
+    주어진 트랙의 embedding을 기반으로 유사한 트랙을 검색합니다.
+    자기 자신을 제외하기 위해 match_count + 1개를 가져온 후 필터링합니다.
+    """
+    if not track_embedding:
+        return []
+    
+    client = get_supabase_client()
+    try:
+        response = client.rpc("search_tracks", {
+            "query_embedding": track_embedding,
+            "match_count": match_count
+        }).execute()
+        
+        results = response.data if hasattr(response, 'data') else response
+        # 자기 자신 제외
+        similar_tracks = [t for t in results if t.get('id') != exclude_track_id]
+        return similar_tracks[:3]  # 상위 3개만 반환
+    except Exception as e:
+        st.error(f"유사 트랙 검색 오류: {e}")
+        return []
+
 # 페이지 설정
 st.set_page_config(
     page_title="🎵 Music Player",
@@ -125,6 +150,44 @@ st.markdown("""
     /* Streamlit 기본 스타일 오버라이드 */
     .stAudio {
         background: transparent !important;
+    }
+    
+    /* 비슷한 곡 카드 스타일 */
+    .similar-track-card {
+        background: linear-gradient(145deg, rgba(15, 52, 96, 0.5), rgba(26, 26, 46, 0.5));
+        border: 1px solid rgba(233, 69, 96, 0.3);
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        transition: all 0.3s ease;
+    }
+    
+    .similar-track-card:hover {
+        border-color: #e94560;
+        box-shadow: 0 4px 15px rgba(233, 69, 96, 0.2);
+    }
+    
+    .similar-track-title {
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+    
+    .similar-track-similarity {
+        color: #e94560;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .similar-section-header {
+        color: #a2d2ff;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin: 1rem 0 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -217,6 +280,40 @@ if tracks:
                 st.audio(track['audioUrl'])
             else:
                 st.warning("Audio URL not available")
+            
+            # 비슷한 곡 섹션
+            if track.get('embeddings'):
+                with st.expander("🎧 비슷한 곡 보기", expanded=False):
+                    similar_tracks = get_similar_tracks(
+                        track_embedding=track['embeddings'],
+                        exclude_track_id=track.get('id'),
+                        match_count=4
+                    )
+                    
+                    if similar_tracks:
+                        cols = st.columns(3)
+                        for col_idx, similar_track in enumerate(similar_tracks):
+                            with cols[col_idx]:
+                                similarity = similar_track.get('similarity', 0)
+                                similarity_pct = f"{similarity * 100:.1f}%" if similarity else "N/A"
+                                
+                                st.markdown(f"""
+                                <div class="similar-track-card">
+                                    <div class="similar-track-title">🎵 {similar_track.get('title', 'Untitled')}</div>
+                                    <div class="similar-track-similarity">유사도: {similarity_pct}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # 태그 표시 (간략하게)
+                                if similar_track.get('tags'):
+                                    sim_tags = [t.strip() for t in similar_track['tags'].split(',')]
+                                    st.caption(f"🏷️ {', '.join(sim_tags[:3])}")
+                                
+                                # 오디오 플레이어
+                                if similar_track.get('audioUrl'):
+                                    st.audio(similar_track['audioUrl'])
+                    else:
+                        st.info("비슷한 곡을 찾을 수 없습니다.")
             
             st.divider()
 
