@@ -7,11 +7,13 @@ requires-python = ">=3.13"
 dependencies = [
     "dotenv>=0.9.9",
     "librosa>=0.11.0",
+    "nbformat>=5.10.4",
     "plotly>=6.0.1",
     "streamlit>=1.52.1",
     "supabase>=2.24.0",
     "torch>=2.9.1",
     "transformers>=4.57.3",
+    "umap-learn>=0.5.9.post2",
 ]
 
 [dependency-groups]
