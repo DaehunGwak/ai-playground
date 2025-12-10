@@ -55,6 +55,7 @@ st.markdown("## 📚 Available Pages")
 st.page_link("pages/2_🎵_Music_Player.py", label="Music Player", icon="🎵")
 st.page_link("pages/1_🎯_Embedding.py", label="Audio Embedding", icon="🎯")
 st.page_link("pages/3_🔍_Text_Query.py", label="Text Query Search", icon="🔍")
+st.page_link("pages/4_📊_Visualization.py", label="Embedding Visualization", icon="📊")
 
 # 시스템 정보
 st.markdown("---")
