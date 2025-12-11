@@ -295,12 +295,12 @@ if tracks:
                         for col_idx, similar_track in enumerate(similar_tracks):
                             with cols[col_idx]:
                                 similarity = similar_track.get('similarity', 0)
-                                similarity_pct = f"{similarity * 100:.1f}%" if similarity else "N/A"
+                                similarity_pct = f"{similarity:.7f}" if similarity else "N/A"
                                 
                                 st.markdown(f"""
                                 <div class="similar-track-card">
                                     <div class="similar-track-title">🎵 {similar_track.get('title', 'Untitled')}</div>
-                                    <div class="similar-track-similarity">유사도: {similarity_pct}</div>
+                                    <div class="similar-track-similarity">거리: {similarity_pct}</div>
                                 </div>
                                 """, unsafe_allow_html=True)
                                 
