@@ -14,6 +14,7 @@ pages = {
     "🎹 MuQ-MuLan": [
         st.Page("pages/6_🎹_MuQ_Embedding.py", title="Embedding", icon="🎹"),
         st.Page("pages/7_🔎_MuQ_Text_Query.py", title="Text Query", icon="🔎"),
+        st.Page("pages/8_📈_MuQ_Visualization.py", title="Visualization", icon="📈"),
     ],
 }
 
