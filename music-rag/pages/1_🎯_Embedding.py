@@ -7,13 +7,6 @@ import plotly.graph_objects as go
 # 환경변수 로드
 dotenv.load_dotenv(".env.local", override=True)
 
-# 페이지 설정
-st.set_page_config(
-    page_title="🎯 Audio Embedding",
-    page_icon="🎯",
-    layout="wide",
-)
-
 # 커스텀 CSS
 st.markdown("""
 <style>

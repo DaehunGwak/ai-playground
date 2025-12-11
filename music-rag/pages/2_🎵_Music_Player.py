@@ -62,13 +62,6 @@ def get_similar_tracks(track_embedding: list, exclude_track_id: int, match_count
         st.error(f"유사 트랙 검색 오류: {e}")
         return []
 
-# 페이지 설정
-st.set_page_config(
-    page_title="🎵 Music Player",
-    page_icon="🎵",
-    layout="wide",
-)
-
 # 커스텀 CSS
 st.markdown("""
 <style>

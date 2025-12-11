@@ -5,13 +5,6 @@ from dotenv import load_dotenv
 # 환경변수 로드
 load_dotenv(".env.local", override=True)
 
-# 페이지 설정
-st.set_page_config(
-    page_title="🤖 AI Music Search",
-    page_icon="🤖",
-    layout="wide",
-)
-
 # 커스텀 CSS
 st.markdown("""
 <style>

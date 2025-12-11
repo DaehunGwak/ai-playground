@@ -11,13 +11,6 @@ from supabase import create_client
 # 환경변수 로드
 dotenv.load_dotenv(".env.local", override=True)
 
-# 페이지 설정
-st.set_page_config(
-    page_title="📊 Embedding Visualization",
-    page_icon="📊",
-    layout="wide",
-)
-
 # 커스텀 CSS
 st.markdown("""
 <style>
