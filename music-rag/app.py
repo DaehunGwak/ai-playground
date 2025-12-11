@@ -11,6 +11,9 @@ pages = {
         st.Page("pages/4_📊_Visualization.py", title="Visualization", icon="📊"),
         st.Page("pages/5_🤖_AI_Search.py", title="AI Search", icon="🤖"),
     ],
+    "🎹 MuQ-MuLan": [
+        st.Page("pages/6_🎹_MuQ_Embedding.py", title="Embedding", icon="🎹"),
+    ],
 }
 
 pg = st.navigation(pages)
