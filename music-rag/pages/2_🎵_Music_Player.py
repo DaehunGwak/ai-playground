@@ -37,11 +37,11 @@ def load_all_tracks():
 
     return all_tracks
 
-# 유사한 트랙 검색 (embedding 기반)
+# 유사한 트랙 검색 (CLAP embedding 기반)
 @st.cache_data(ttl=300)
 def get_similar_tracks(track_embedding: list, exclude_track_id: int, match_count: int = 4):
     """
-    주어진 트랙의 embedding을 기반으로 유사한 트랙을 검색합니다.
+    주어진 트랙의 CLAP embedding을 기반으로 유사한 트랙을 검색합니다.
     자기 자신을 제외하기 위해 match_count + 1개를 가져온 후 필터링합니다.
     """
     if not track_embedding:
@@ -59,7 +59,33 @@ def get_similar_tracks(track_embedding: list, exclude_track_id: int, match_count
         similar_tracks = [t for t in results if t.get('id') != exclude_track_id]
         return similar_tracks[:3]  # 상위 3개만 반환
     except Exception as e:
-        st.error(f"유사 트랙 검색 오류: {e}")
+        st.error(f"CLAP 유사 트랙 검색 오류: {e}")
+        return []
+
+
+# 유사한 트랙 검색 (MuQ-MuLan embedding 기반)
+@st.cache_data(ttl=300)
+def get_similar_tracks_muq(track_embedding: list, exclude_track_id: int, match_count: int = 4):
+    """
+    주어진 트랙의 MuQ-MuLan embedding을 기반으로 유사한 트랙을 검색합니다.
+    자기 자신을 제외하기 위해 match_count + 1개를 가져온 후 필터링합니다.
+    """
+    if not track_embedding:
+        return []
+    
+    client = get_supabase_client()
+    try:
+        response = client.rpc("search_tracks_muq", {
+            "query_embedding": track_embedding,
+            "match_count": match_count
+        }).execute()
+        
+        results = response.data if hasattr(response, 'data') else response
+        # 자기 자신 제외
+        similar_tracks = [t for t in results if t.get('id') != exclude_track_id]
+        return similar_tracks[:3]  # 상위 3개만 반환
+    except Exception as e:
+        st.error(f"MuQ 유사 트랙 검색 오류: {e}")
         return []
 
 # 커스텀 CSS
@@ -274,9 +300,9 @@ if tracks:
             else:
                 st.warning("Audio URL not available")
             
-            # 비슷한 곡 섹션
+            # 비슷한 곡 섹션 (CLAP)
             if track.get('embeddings'):
-                with st.expander("🎧 비슷한 곡 보기", expanded=False):
+                with st.expander("🔬 CLAP 기반 비슷한 곡", expanded=False):
                     similar_tracks = get_similar_tracks(
                         track_embedding=track['embeddings'],
                         exclude_track_id=track.get('id'),
@@ -306,7 +332,41 @@ if tracks:
                                 if similar_track.get('audioUrl'):
                                     st.audio(similar_track['audioUrl'])
                     else:
-                        st.info("비슷한 곡을 찾을 수 없습니다.")
+                        st.info("CLAP 임베딩 기반 비슷한 곡을 찾을 수 없습니다.")
+            
+            # 비슷한 곡 섹션 (MuQ-MuLan)
+            if track.get('embeddingMuq'):
+                with st.expander("🎹 MuQ-MuLan 기반 비슷한 곡", expanded=False):
+                    similar_tracks_muq = get_similar_tracks_muq(
+                        track_embedding=track['embeddingMuq'],
+                        exclude_track_id=track.get('id'),
+                        match_count=4
+                    )
+                    
+                    if similar_tracks_muq:
+                        cols = st.columns(3)
+                        for col_idx, similar_track in enumerate(similar_tracks_muq):
+                            with cols[col_idx]:
+                                similarity = similar_track.get('similarity', 0)
+                                similarity_pct = f"{similarity:.7f}" if similarity else "N/A"
+                                
+                                st.markdown(f"""
+                                <div class="similar-track-card" style="border-color: rgba(255, 107, 157, 0.3);">
+                                    <div class="similar-track-title" style="color: #ff6b9d;">🎹 {similar_track.get('title', 'Untitled')}</div>
+                                    <div class="similar-track-similarity" style="color: #ff6b9d;">거리: {similarity_pct}</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # 태그 표시 (간략하게)
+                                if similar_track.get('tags'):
+                                    sim_tags = [t.strip() for t in similar_track['tags'].split(',')]
+                                    st.caption(f"🏷️ {', '.join(sim_tags[:3])}")
+                                
+                                # 오디오 플레이어
+                                if similar_track.get('audioUrl'):
+                                    st.audio(similar_track['audioUrl'])
+                    else:
+                        st.info("MuQ-MuLan 임베딩 기반 비슷한 곡을 찾을 수 없습니다.")
             
             st.divider()
 
