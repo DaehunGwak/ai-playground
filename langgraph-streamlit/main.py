@@ -1,4 +1,5 @@
 import os
+import uuid
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 from graph import create_chat_graph
@@ -10,11 +11,34 @@ st.set_page_config(
     layout="wide"
 )
 
+# 헬퍼 함수: LangGraph state에서 메시지 가져오기
+def get_messages():
+    """LangGraph의 state에서 메시지 히스토리를 가져옵니다."""
+    if not st.session_state.graph:
+        return []
+    
+    try:
+        config = {"configurable": {"thread_id": st.session_state.thread_id}}
+        state = st.session_state.graph.get_state(config)
+        
+        messages = []
+        if state.values.get("messages"):
+            for msg in state.values["messages"]:
+                if hasattr(msg, '__class__'):
+                    msg_type = msg.__class__.__name__
+                    if msg_type == "HumanMessage":
+                        messages.append({"role": "user", "content": msg.content})
+                    elif msg_type == "AIMessage":
+                        messages.append({"role": "assistant", "content": msg.content})
+        return messages
+    except Exception:
+        return []
+
 # 세션 상태 초기화
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 if "graph" not in st.session_state:
     st.session_state.graph = None
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid.uuid4())
 
 # 사이드바
 with st.sidebar:
@@ -40,21 +64,25 @@ with st.sidebar:
         model_name = st.selectbox(
             "모델",
             [
+                "gemini-3-pro-preview",
+                "gemini-3-flash-preview",
                 "gemini-2.5-flash",
                 "gemini-2.5-pro",
                 "gemini-2.0-flash-exp",
+                "gemini-2.0-flash-lite",
                 "gemini-1.5-pro",
                 "gemini-1.5-flash",
+                "gemini-1.5-flash-8b",
                 "gemini-pro",
             ],
-            index=0,
+            index=2,
             label_visibility="collapsed"
         )
     else:
         model_name = st.text_input(
             "모델 이름",
             value="gemini-2.5-pro",
-            placeholder="예: gemini-2.5-pro, gemini-2.5-flash",
+            placeholder="예: gemini-3-pro-preview, gemini-2.0-flash-lite, gemini-1.5-flash-8b",
             help="사용 가능한 모델 이름을 입력하세요"
         )
     
@@ -65,6 +93,7 @@ with st.sidebar:
                     st.session_state.graph = create_chat_graph(api_key, model_name)
                     st.session_state.current_api_key = api_key
                     st.session_state.current_model = model_name
+                
                 st.success("✅ 그래프가 초기화되었습니다!")
             except Exception as e:
                 st.error(f"❌ 그래프 초기화 실패: {str(e)}")
@@ -76,7 +105,8 @@ with st.sidebar:
     st.divider()
     
     if st.button("🗑️ 대화 기록 지우기", use_container_width=True):
-        st.session_state.messages = []
+        # 새로운 thread_id 생성으로 대화 초기화
+        st.session_state.thread_id = str(uuid.uuid4())
         st.rerun()
     
     st.divider()
@@ -85,8 +115,9 @@ with st.sidebar:
 # 메인 채팅 인터페이스
 st.title("💬 채팅")
 
-# 메시지 히스토리 표시
-for message in st.session_state.messages:
+# 메시지 히스토리 표시 (LangGraph state에서 가져오기)
+messages = get_messages()
+for message in messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
@@ -97,8 +128,7 @@ if prompt := st.chat_input("메시지를 입력하세요..."):
         st.error("⚠️ 사이드바에서 API 키를 입력해주세요.")
         st.stop()
     
-    # 사용자 메시지 추가 및 표시
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # 사용자 메시지 표시
     with st.chat_message("user"):
         st.markdown(prompt)
     
@@ -106,18 +136,14 @@ if prompt := st.chat_input("메시지를 입력하세요..."):
     with st.chat_message("assistant"):
         with st.spinner("생성 중..."):
             try:
-                # LangChain 메시지 형식으로 변환
-                langchain_messages = []
-                for msg in st.session_state.messages:
-                    if msg["role"] == "user":
-                        langchain_messages.append(HumanMessage(content=msg["content"]))
-                    elif msg["role"] == "assistant":
-                        langchain_messages.append(AIMessage(content=msg["content"]))
+                # LangGraph 실행 (checkpointer가 자동으로 히스토리 관리)
+                config = {"configurable": {"thread_id": st.session_state.thread_id}}
+                result = st.session_state.graph.invoke(
+                    {"messages": [HumanMessage(content=prompt)]},
+                    config=config
+                )
                 
-                # LangGraph 실행
-                result = st.session_state.graph.invoke({"messages": langchain_messages})
-                
-                # 마지막 AI 응답 추출
+                # 마지막 AI 응답 추출 및 표시
                 if result.get("messages"):
                     last_message = result["messages"][-1]
                     response = last_message.content if hasattr(last_message, 'content') else str(last_message)
@@ -125,9 +151,11 @@ if prompt := st.chat_input("메시지를 입력하세요..."):
                     response = "응답을 생성할 수 없습니다."
                 
                 st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                
+                # 성공 시에만 페이지 리로드
+                st.rerun()
                 
             except Exception as e:
                 error_msg = f"❌ 오류 발생: {str(e)}"
                 st.error(error_msg)
-                st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                # 에러 발생 시에는 rerun하지 않아서 에러 메시지가 화면에 남도록 함

@@ -6,6 +6,7 @@ from typing import TypedDict, Annotated
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import MemorySaver
 
 
 class State(TypedDict):
@@ -43,5 +44,8 @@ def create_chat_graph(api_key: str, model_name: str = "gemini-pro"):
     graph.set_entry_point("chatbot")
     graph.add_edge("chatbot", END)
     
+    # 메모리 체크포인터 추가하여 히스토리 저장
+    memory = MemorySaver()
+    
     # 그래프 컴파일 및 반환
-    return graph.compile()
+    return graph.compile(checkpointer=memory)
