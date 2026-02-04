@@ -4,10 +4,16 @@ volumes:
   db_storage:
   n8n_storage:
 
+networks:
+  n8n-network:
+    driver: bridge
+
 services:
   postgres:
     image: postgres:16
     restart: always
+    networks:
+      - n8n-network
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
@@ -26,6 +32,8 @@ services:
   n8n:
     image: docker.n8n.io/n8nio/n8n
     restart: always
+    networks:
+      - n8n-network
     environment:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
@@ -39,10 +47,10 @@ services:
       - N8N_PROTOCOL=http
     ports:
       - 5678:5678
-    links:
-      - postgres
     volumes:
       - n8n_storage:/home/node/.n8n
     depends_on:
       postgres:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
