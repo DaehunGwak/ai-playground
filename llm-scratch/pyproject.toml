@@ -1,7 +1,7 @@
 [project]
 name = "llm-scratch"
 version = "0.1.0"
-description = "Add your description here"
+description = "밑바닥부터 만들면서 배우는 LLM 실습 코드"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
