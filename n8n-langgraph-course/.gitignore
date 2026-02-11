@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Environment variables
+.env
+
+# resource 데이터
+resources/
+milvus/volumes/
+output/
+
+# claude local
+.claude/settings.local.json
