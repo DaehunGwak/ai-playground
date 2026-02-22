@@ -13,5 +13,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jupyter>=1.1.1",
+    "nbconvert",
     "torchinfo>=1.8.0",
 ]
