@@ -1,6 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-app = FastAPI(title="clap-fastapi")
+from app import model as clap_model
+from app.routers import embed
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    clap_model.load_model()
+    yield
+
+
+app = FastAPI(title="clap-fastapi", lifespan=lifespan)
+app.include_router(embed.router)
 
 
 @app.get("/health")

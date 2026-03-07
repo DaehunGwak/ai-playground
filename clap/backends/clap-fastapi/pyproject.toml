@@ -1,10 +1,15 @@
 [project]
 name = "clap-fastapi"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLAP text/audio embedding API"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.135.1",
-    "uvicorn[standard]>=0.41.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "laion-clap>=1.1.4",
+    "librosa>=0.10.0",
+    "python-multipart>=0.0.9",
 ]

@@ -15,3 +15,10 @@ dist/
 
 # OS
 .DS_Store
+
+# 모델 체크포인트
+*.pt
+checkpoints/
+
+# static files
+resources/

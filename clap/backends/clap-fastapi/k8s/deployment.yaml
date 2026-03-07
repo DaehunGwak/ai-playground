@@ -20,8 +20,22 @@ spec:
         - containerPort: 8000
         resources:
           requests:
-            cpu: 200m
-            memory: 128Mi
+            cpu: 500m
+            memory: 3000Mi
           limits:
-            cpu: 2000m
-            memory: 256Mi
+            cpu: 4000m
+            memory: 8000Mi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          failureThreshold: 3

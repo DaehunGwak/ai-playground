@@ -1,0 +1,11 @@
+checkpoints/
+resources/
+*.pt
+.venv/
+__pycache__/
+.git/
+k6/
+scripts/
+docs/
+*.md
+.DS_Store
