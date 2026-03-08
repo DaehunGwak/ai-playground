@@ -1,0 +1,27 @@
+services:
+  model:
+    build: ./model
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8105:8000"
+    environment:
+      - MODEL_SERVICE_URL=http://model:8000
+    depends_on:
+      model:
+        condition: service_healthy

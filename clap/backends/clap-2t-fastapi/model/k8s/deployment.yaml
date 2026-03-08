@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clap-2t-model
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clap-2t-model
+  template:
+    metadata:
+      labels:
+        app: clap-2t-model
+    spec:
+      containers:
+        - name: model
+          image: clap-2t-model:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: CLAP_CHECKPOINT_PATH
+              value: /app/checkpoints/music_audioset_epoch_15_esc_90.14.pt
+          resources:
+            requests:
+              memory: "3Gi"
+              cpu: "1"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 120
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 180
+            periodSeconds: 30
