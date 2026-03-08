@@ -1,0 +1,20 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libsndfile1 \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+WORKDIR /app
+COPY pyproject.toml ./
+RUN uv lock && uv sync --no-dev --no-install-project
+
+# RobertaTokenizer 캐싱 (빌드 타임, ~500MB 절감 가능)
+RUN uv run python -c "from transformers import RobertaTokenizer; RobertaTokenizer.from_pretrained('roberta-base')"
+
+COPY app/ app/
+EXPOSE 8000
+
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

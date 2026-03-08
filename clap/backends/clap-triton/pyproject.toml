@@ -1,0 +1,14 @@
+[project]
+name = "clap-triton"
+version = "0.1.0"
+description = "CLAP text/audio embedding API with Triton Inference Server backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "tritonclient[grpc]>=2.40.0",
+    "librosa>=0.10.0",
+    "transformers>=4.35.0",
+    "numpy>=1.24.0",
+    "python-multipart>=0.0.9",
+]

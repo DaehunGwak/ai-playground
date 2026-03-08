@@ -1,0 +1,36 @@
+name: "clap_audio"
+backend: "python"
+max_batch_size: 8
+
+input [
+  {
+    name: "waveform"
+    data_type: TYPE_FP32
+    dims: [ 480000 ]
+  },
+  {
+    name: "longer"
+    data_type: TYPE_BOOL
+    dims: [ 1 ]
+  }
+]
+
+output [
+  {
+    name: "embeddings"
+    data_type: TYPE_FP32
+    dims: [ 512 ]
+  }
+]
+
+instance_group [
+  {
+    kind: KIND_CPU
+    count: 1
+  }
+]
+
+dynamic_batching {
+  preferred_batch_size: [ 1, 2, 4 ]
+  max_queue_delay_microseconds: 200000
+}

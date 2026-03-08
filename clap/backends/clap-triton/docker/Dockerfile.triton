@@ -1,0 +1,51 @@
+# Triton Inference Server + CLAP audio model
+FROM nvcr.io/nvidia/tritonserver:24.01-py3
+
+# Python 의존성 설치 (torch, laion-clap, torchlibrosa)
+RUN pip install --no-cache-dir \
+    torch==2.2.0 torchvision==0.17.0 && \
+    pip install --no-cache-dir \
+    laion-clap>=1.1.4 \
+    "transformers>=4.35.0,<4.44.0" \
+    torchlibrosa \
+    onnx>=1.15.0 \
+    onnxruntime>=1.17.0 \
+    librosa>=0.10.0 \
+    wget
+
+WORKDIR /workspace
+
+# 스크립트만 복사 (변경 빈도 낮음)
+COPY scripts/ /workspace/scripts/
+
+# 체크포인트 다운로드 (~2.35GB, clap-fastapi와 동일 체크포인트 사용)
+RUN mkdir -p /workspace/checkpoints && \
+    wget -q -O /workspace/checkpoints/music_audioset_epoch_15_esc_90.14.pt \
+    "https://huggingface.co/lukewys/laion_clap/resolve/main/music_audioset_epoch_15_esc_90.14.pt"
+
+ENV CLAP_CHECKPOINT_PATH=/workspace/checkpoints/music_audioset_epoch_15_esc_90.14.pt
+
+# 텍스트 모델 ONNX export
+RUN mkdir -p /workspace/model_repository/clap_text/1
+RUN python3 /workspace/scripts/export_text_model.py \
+    --checkpoint "${CLAP_CHECKPOINT_PATH}" \
+    --output /workspace/model_repository/clap_text/1/model.onnx
+
+# 오디오 모델 가중치 추출
+RUN mkdir -p /workspace/model_repository/clap_audio/1
+RUN python3 /workspace/scripts/export_audio_model.py \
+    --checkpoint "${CLAP_CHECKPOINT_PATH}" \
+    --output-dir /workspace/model_repository/clap_audio/1
+
+# config.pbtxt / model.py 복사 (export 이후에 복사 → config 변경 시 이 레이어만 재빌드)
+COPY triton/model_repository/ /workspace/model_repository/
+
+# 체크포인트 제거 (모델 파일이 이미 추출됨, 이미지 크기 절감)
+RUN rm -rf /workspace/checkpoints
+
+# Triton이 model_repository를 /models에서 로드하도록 이동
+RUN mv /workspace/model_repository /models
+
+EXPOSE 8000 8001 8002
+
+CMD ["tritonserver", "--model-repository=/models"]

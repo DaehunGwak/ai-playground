@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clap-triton-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clap-triton-server
+  template:
+    metadata:
+      labels:
+        app: clap-triton-server
+    spec:
+      containers:
+      - name: triton
+        image: clap-triton-server:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8000
+        - name: grpc
+          containerPort: 8001
+        - name: metrics
+          containerPort: 8002
+        resources:
+          requests:
+            cpu: "1"
+            memory: 4Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+        readinessProbe:
+          httpGet:
+            path: /v2/health/ready
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 15
+          failureThreshold: 8
+        livenessProbe:
+          httpGet:
+            path: /v2/health/live
+            port: 8000
+          initialDelaySeconds: 180
+          periodSeconds: 30
+          failureThreshold: 3

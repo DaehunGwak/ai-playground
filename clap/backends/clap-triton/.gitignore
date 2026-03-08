@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+dist/
+*.egg-info/
+
+# uv
+.python-version
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# 모델 체크포인트 / 가중치
+*.pt
+*.onnx
+checkpoints/
+
+# Triton 생성 파일
+triton/model_repository/clap_text/1/model.onnx
+triton/model_repository/clap_audio/1/clap_audio_weights.pt
+triton/model_repository/clap_audio/1/audio_cfg.json

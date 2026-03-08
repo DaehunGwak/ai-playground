@@ -1,0 +1,12 @@
+checkpoints/
+*.pt
+*.onnx
+.venv/
+__pycache__/
+.git/
+k6/
+*.md
+.DS_Store
+triton/model_repository/clap_text/1/model.onnx
+triton/model_repository/clap_audio/1/clap_audio_weights.pt
+triton/model_repository/clap_audio/1/audio_cfg.json
